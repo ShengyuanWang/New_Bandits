@@ -11,12 +11,12 @@ class Bandit:
     def __init__(self, n):
         self.n = 0  # 臂的标号
         self.mu = 1  # 臂的结果均值
-        self.sigma = 0  # 臂的结果方差
+        self.sigma = 0.01  # 臂的结果方差
 
     def play(self):
         result = np.random.normal(self.mu, self.sigma, 1)  # 扳动老虎机的摇杆
         # result = self.mu
-        return int(result)
+        return result
 
 
 # 需要同时多个老虎机进行工作，总体可以先设置10个候选人，5个群组成员。由epsilon1来决定换下哪位群组成员，由epsilon2决定换上哪位成员。然后就是需要定义协作度！！！
