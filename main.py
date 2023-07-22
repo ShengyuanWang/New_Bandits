@@ -25,92 +25,29 @@ class Bandit:
 
 
 def random_unit(p: float):
-    R = random.random()
-    if R < p:
-        return True
-    else:
-        return False
+    return random.random() < p
 
 
-def work_once():
+
+def work_once(relation, work_machine, n=5):
     ans = 0
-    ans += Bandit(work_machine[0]).play() * (relation[work_machine[0]][work_machine[1]] +
-                                             relation[work_machine[0]][work_machine[2]] +
-                                             relation[work_machine[0]][work_machine[3]] +
-                                             relation[work_machine[0]][work_machine[4]]) / 4
+    for i in range(n):
+        tmp = 0
+        for j in range(n):
+            if i != j:
+                tmp += Bandit(work_machine[i]).play() * relation[i][j]
+        ans += tmp / (n - 1)
+    return ans / n
 
-    ans += Bandit(work_machine[1]).play() * (relation[work_machine[1]][work_machine[0]] +
-                                             relation[work_machine[1]][work_machine[2]] +
-                                             relation[work_machine[1]][work_machine[3]] +
-                                             relation[work_machine[1]][work_machine[4]]) / 4
+# n = 5
 
-    ans += Bandit(work_machine[2]).play() * (relation[work_machine[2]][work_machine[1]] +
-                                             relation[work_machine[2]][work_machine[0]] +
-                                             relation[work_machine[2]][work_machine[3]] +
-                                             relation[work_machine[2]][work_machine[4]]) / 4
+def assign_value(relation_amount, relation_n, work_machine, res, n=5):
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                relation_amount[work_machine[i]][work_machine[j]] += res
+                relation_n[work_machine[i]][work_machine[j]] += 1
 
-    ans += Bandit(work_machine[3]).play() * (relation[work_machine[3]][work_machine[1]] +
-                                             relation[work_machine[3]][work_machine[2]] +
-                                             relation[work_machine[3]][work_machine[0]] +
-                                             relation[work_machine[3]][work_machine[4]]) / 4
-
-    ans += Bandit(work_machine[4]).play() * (relation[work_machine[4]][work_machine[1]] +
-                                             relation[work_machine[4]][work_machine[2]] +
-                                             relation[work_machine[4]][work_machine[0]] +
-                                             relation[work_machine[4]][work_machine[3]]) / 4
-    return ans / 5
-
-
-def assign_value():
-    relation_amount[work_machine[0]][work_machine[1]] += res
-    relation_amount[work_machine[0]][work_machine[2]] += res
-    relation_amount[work_machine[0]][work_machine[3]] += res
-    relation_amount[work_machine[0]][work_machine[4]] += res
-
-    relation_amount[work_machine[1]][work_machine[0]] += res
-    relation_amount[work_machine[1]][work_machine[2]] += res
-    relation_amount[work_machine[1]][work_machine[3]] += res
-    relation_amount[work_machine[1]][work_machine[4]] += res
-
-    relation_amount[work_machine[2]][work_machine[1]] += res
-    relation_amount[work_machine[2]][work_machine[0]] += res
-    relation_amount[work_machine[2]][work_machine[3]] += res
-    relation_amount[work_machine[2]][work_machine[4]] += res
-
-    relation_amount[work_machine[3]][work_machine[1]] += res
-    relation_amount[work_machine[3]][work_machine[2]] += res
-    relation_amount[work_machine[3]][work_machine[0]] += res
-    relation_amount[work_machine[3]][work_machine[4]] += res
-
-    relation_amount[work_machine[4]][work_machine[1]] += res
-    relation_amount[work_machine[4]][work_machine[2]] += res
-    relation_amount[work_machine[4]][work_machine[0]] += res
-    relation_amount[work_machine[4]][work_machine[3]] += res
-
-    relation_n[work_machine[0]][work_machine[1]] += 1
-    relation_n[work_machine[0]][work_machine[2]] += 1
-    relation_n[work_machine[0]][work_machine[3]] += 1
-    relation_n[work_machine[0]][work_machine[4]] += 1
-
-    relation_n[work_machine[1]][work_machine[0]] += 1
-    relation_n[work_machine[1]][work_machine[2]] += 1
-    relation_n[work_machine[1]][work_machine[3]] += 1
-    relation_n[work_machine[1]][work_machine[4]] += 1
-
-    relation_n[work_machine[2]][work_machine[1]] += 1
-    relation_n[work_machine[2]][work_machine[0]] += 1
-    relation_n[work_machine[2]][work_machine[3]] += 1
-    relation_n[work_machine[2]][work_machine[4]] += 1
-
-    relation_n[work_machine[3]][work_machine[1]] += 1
-    relation_n[work_machine[3]][work_machine[2]] += 1
-    relation_n[work_machine[3]][work_machine[0]] += 1
-    relation_n[work_machine[3]][work_machine[4]] += 1
-
-    relation_n[work_machine[4]][work_machine[1]] += 1
-    relation_n[work_machine[4]][work_machine[2]] += 1
-    relation_n[work_machine[4]][work_machine[0]] += 1
-    relation_n[work_machine[4]][work_machine[3]] += 1
 
 
 relation = np.array([[0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 4.5],
@@ -125,31 +62,29 @@ relation = np.array([[0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 4.5],
                      [4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5, 0.0]])  # 协作度关系-暗矩阵
 epsilon = 0.9
 
+
+
+# 这里我假设有m个候选人，n个群组成员
+m, n = 10, 5
 while True:
-    relation_amount = np.zeros([10, 10])  # 协作度总数值-明矩阵
-    relation_n = np.zeros([10, 10])  # 协作度尝试次数-明矩阵
-    relation_pre = np.zeros([10, 10])  # 协作度关系-明矩阵
-    work_machine = np.array([0, 1, 2, 3, 4])
+    relation_amount = np.zeros([m, m])  # 协作度总数值-明矩阵
+    relation_n = np.zeros([m, m])  # 协作度尝试次数-明矩阵
+    relation_pre = np.zeros([m, m])  # 协作度关系-明矩阵
+    work_machine = np.arange(n)
     res = 0
     t = int(input("The turns of train: "))
     for i in range(t):
         a = random_unit(epsilon)
         if a is True:
-            pos_choice = random.randint(0, 4)
-            num_choice = random.randint(0, 9)  # 不能自己和自己协作！
-            if work_machine[0] == num_choice or work_machine[1] == num_choice or work_machine[2] == num_choice or \
-                    work_machine[3] == num_choice or work_machine[4] == num_choice:
-                res = work_once()
-                assign_value()
-            else:
+            pos_choice = random.randint(0, n-1)
+            num_choice = random.randint(0, m-1)  # 不能自己和自己协作！
+            if num_choice not in work_machine:
                 work_machine[pos_choice] = num_choice
-                res = work_once()
-                assign_value()
-        else:
-            res = work_once()
-            assign_value()
-    for i in range(0, 10):
-        for j in range(0, 10):
+        res = work_once(relation, work_machine, n)
+        assign_value(relation_amount, relation_n, work_machine, res, n)
+
+    for i in range(m):
+        for j in range(m):
             if relation_n[i][j] == 0:
                 relation_pre[i][j] = round(relation_amount[i][j], 3)
             else:
